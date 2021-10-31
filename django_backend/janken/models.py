@@ -60,6 +60,34 @@ class Match(TimeStampedModel):
         player_name = getattr(self.player, 'name', "[unnamed]")
         return f"Match {self.id} with {player_name}"
 
+    def decide_outcome(self) -> str:
+        """ Decide the outcome of the match """
+
+        rounds_played = getattr(self, 'rounds_played', Round.objects.none())
+
+        if rounds_played.count() < 3:
+            self.outcome = self.UNDECIDED
+            self.save()
+            return self.UNDECIDED
+
+        if rounds_played.count() > 3:
+            raise ValueError(
+                f"More than 3 rounds were played for match {self.id}")
+
+        player_wins = rounds_played.filter(outcome=Round.PLAYER_WON).count()
+        bot_wins = rounds_played.filter(outcome=Round.PLAYER_LOST).count()
+
+        if player_wins > bot_wins:
+            outcome = self.PLAYER_WON
+        elif player_wins < bot_wins:
+            outcome = self.PLAYER_LOST
+        else:
+            outcome = self.PLAYER_TIED
+
+        self.outcome = outcome
+        self.save()
+        return outcome
+
 
 
 class Round(TimeStampedModel):
@@ -105,3 +133,36 @@ class Round(TimeStampedModel):
 
     def __str__(self):
         return f"Match: {self.match.id}, Round: {self.round_number}"
+
+    def decide_outcome(self) -> str:
+        """ Decides the outcome of this round """
+
+        if self.player_selection == self.NO_SELECTION:
+            raise ValueError("Player has no selection.")
+
+        if self.bot_selection == self.NO_SELECTION:
+            raise ValueError("Bot has no selection.")
+
+        decision_matrix = {
+            self.ROCK: {
+                self.ROCK: self.PLAYER_TIED,
+                self.PAPER: self.PLAYER_LOST,
+                self.SCISSORS: self.PLAYER_WON
+            },
+            self.PAPER: {
+                self.ROCK: self.PLAYER_WON,
+                self.PAPER: self.PLAYER_TIED,
+                self.SCISSORS: self.PLAYER_LOST
+            },
+            self.SCISSORS: {
+                self.ROCK: self.PLAYER_LOST,
+                self.PAPER: self.PLAYER_WON,
+                self.SCISSORS: self.PLAYER_TIED
+            }
+        }
+
+        self.outcome = \
+            decision_matrix[self.player_selection][self.bot_selection]
+        self.save()
+
+        return self.outcome
