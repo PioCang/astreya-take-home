@@ -1,6 +1,8 @@
 """ Models used by Janken """
 
 from __future__ import annotations
+from random import randrange
+
 from django.db import models
 
 
@@ -163,6 +165,40 @@ class Round(TimeStampedModel):
     def __str__(self):
         return f"Match: {self.match.id}, Round: {self.round_number}"
 
+    @classmethod
+    def commence_round(cls, match, player_selection) -> dict:
+        """ Play your selection agains the bot """
+
+        valid_selections = dict((x, y) for x, y in cls.SELECTION_CHOICES)
+        del valid_selections[cls.NO_SELECTION]
+
+        if player_selection not in valid_selections.keys():
+            raise ValueError(f"Selection must be in {valid_selections.keys()}")
+
+        bot_selection = cls.generate_bot_selection()
+        created_round = cls.objects.create(
+            match=match,
+            player_selection=player_selection,
+            bot_selection=bot_selection,
+            round_number=match.rounds_played.count() + 1)
+
+        outcome_descriptive = created_round.decide_outcome()
+
+        return {
+            'round_no': created_round.round_number,
+            'player_selection': valid_selections[player_selection],
+            'bot_selection': valid_selections[bot_selection],
+            'outcome': outcome_descriptive
+        }
+
+
+    @classmethod
+    def generate_bot_selection(cls) -> str:
+        """ Generates a random value for bot's selection """
+
+        possible_selections = (cls.ROCK, cls.PAPER, cls.SCISSORS)
+        return possible_selections[randrange(len(possible_selections))]
+
     def decide_outcome(self) -> str:
         """ Decides the outcome of this round """
 
@@ -194,4 +230,5 @@ class Round(TimeStampedModel):
             decision_matrix[self.player_selection][self.bot_selection]
         self.save()
 
-        return self.outcome
+        outcome_strings_as_dict = dict((x, y) for x, y in self.ROUND_OUTCOMES)
+        return outcome_strings_as_dict[self.outcome]

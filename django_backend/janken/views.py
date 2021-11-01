@@ -5,7 +5,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Player
+from .models import Match, Player, Round
+from .utils import dump_thorough_stack_trace
 
 class RegisterPlayer(APIView):
     """ View for Registering Player name and starting a new match """
@@ -30,5 +31,49 @@ class RegisterPlayer(APIView):
 
 
         except (TypeError, ValueError) as err:
+            dump_thorough_stack_trace()
+            return Response({'message': str(err)},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class PlayRound(APIView):
+    """ View for Playing a Janken Round """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """ Play a round of Janken """
+
+        try:
+            name = request.data.get('name', '')
+            if not name:
+                raise ValueError("The name is invalid")
+
+            match_id = int(request.data.get('match_id', 0))
+            if not match_id:
+                raise ValueError("Invalid match ID")
+
+            player_exists = Player.objects \
+                .filter(name=name,
+                        session_key=request.session.session_key) \
+                .exists()
+            if not player_exists:
+                raise ValueError("Invalid Player")
+
+            try:
+                match = Match.objects.get(id=match_id)
+            except Match.DoesNotExist as nonexistent:
+                raise ValueError("Invalid Match ID") from nonexistent
+
+            if match.rounds_played.count() >= 3:
+                raise TypeError("3 rounds were already played for this match.")
+
+            selection = request.data.get('selection', Round.NO_SELECTION)
+            round_info = Round.commence_round(match, selection)
+
+            return Response(round_info, status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as err:
+            dump_thorough_stack_trace()
             return Response({'message': str(err)},
                             status=status.HTTP_400_BAD_REQUEST)
