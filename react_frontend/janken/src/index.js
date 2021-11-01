@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
+import Janken from './Janken';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Janken />
   </React.StrictMode>,
   document.getElementById('root')
 );
