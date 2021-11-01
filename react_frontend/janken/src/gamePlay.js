@@ -30,7 +30,10 @@ const GamePlay = ({gameDetails, alterGameDetails, advanceToSummary}) => {
                 bot_selection: payload.bot_selection,
                 outcome: payload.outcome,
                 score: payload.outcome === "Player won round against bot"
-                    ? gameDetails.score + 1 : gameDetails.score
+                    ? gameDetails.score + 1
+                    : "Player won round against bot"
+                        ? gameDetails.score - 1
+                        : gameDetails.score
             }
 
             let updated_rounds = [...gameDetails.rounds];
