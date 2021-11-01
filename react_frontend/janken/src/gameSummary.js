@@ -56,6 +56,7 @@ const GameSummary = ({gameDetails, alterGameDetails, resetGame, rematchGame}) =>
 
     useEffect(() => {
         fetchSummary();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const gameSummaryStyles = {
