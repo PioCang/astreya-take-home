@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .models import Player
+
 class RegisterPlayer(APIView):
     """ View for Registering Player name and starting a new match """
 
@@ -14,6 +16,10 @@ class RegisterPlayer(APIView):
         """ Register name of player """
 
         try:
+            name = request.data.get('name', '')
+            player = Player.register_new_player(name,
+                                                request.session.session_key)
+            match_id = player.start_new_match()
 
             return Response(
                 {
@@ -24,5 +30,5 @@ class RegisterPlayer(APIView):
 
 
         except (TypeError, ValueError) as err:
-            return Response({'error': str(err)},
+            return Response({'message': str(err)},
                             status=status.HTTP_400_BAD_REQUEST)

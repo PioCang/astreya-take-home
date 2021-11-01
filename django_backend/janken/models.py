@@ -1,5 +1,6 @@
 """ Models used by Janken """
 
+from __future__ import annotations
 from django.db import models
 
 
@@ -23,12 +24,40 @@ class Player(TimeStampedModel):
     A visitor of the site who wishes to challenge the Janken Bot.
     """
 
+    INVALIDATED = '###INVALIDATED###'
+
     name = models.CharField(max_length=128, null=True)
     session_key = models.CharField(max_length=64, null=True, blank=True)
 
 
     def __str__(self):
         return self.name or '[unnamed]'
+
+    @classmethod
+    def register_new_player(cls, name: str, session_key: str) -> Player:
+        """ Register a new player """
+
+        if not name:
+            raise ValueError("The name is invalid")
+        if len(name) > 128:
+            raise ValueError("Name is limited to 128 characters.")
+
+        existing_players = cls.objects.filter(name=name,
+                                              session_key=session_key)
+        if existing_players.exists():
+            existing_players.first().invalidate_key()
+
+        return cls.objects.create(name=name, session_key=session_key)
+
+    def invalidate_key(self) -> None:
+        """ Invalidate the session key for this Player """
+
+        self.session_key = self.INVALIDATED
+        self.save()
+
+    def start_new_match(self) -> int:
+        """ Start a new match with Player """
+        return self.matches_played.create(player=self).id
 
 
 
