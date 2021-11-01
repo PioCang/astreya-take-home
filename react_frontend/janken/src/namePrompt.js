@@ -3,7 +3,7 @@ import * as BACKEND from './constants';
 
 const axios = require('axios');
 
-const NamePrompt = ({alterGameDetails, nextMode}) => {
+const NamePrompt = ({alterGameDetails, advanceMode}) => {
 
     const [playerName, setPlayerName] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
@@ -22,13 +22,11 @@ const NamePrompt = ({alterGameDetails, nextMode}) => {
             });
             const payload = response.data;
 
-            alterGameDetails(
-                {
-                    playerName: payload.name,
-                    matchID: payload.match_id,
-                },
-                nextMode
-            );
+            alterGameDetails({
+                playerName: payload.name,
+                matchID: payload.match_id,
+            });
+            advanceMode();
         } catch (error) {
             setErrorMsg(error.response.data['message']);
         }

@@ -1,23 +1,20 @@
 import React, {useState} from 'react';
+import GameSummary from './gameSummary';
 import NamePrompt from './namePrompt';
 
 const Janken = () => {
-    const NAME_PROMPT = 'name', GAME_PLAY = 'play';// SHOW_SUMMARY = 'summary';
+    const NAME_PROMPT = 'name', GAME_PLAY = 'play', SHOW_SUMMARY = 'summary';
 
-    const [gameMode, setGameMode] = useState(NAME_PROMPT);
+    const [gameMode, setGameMode] = useState(SHOW_SUMMARY);
 
     const blankGameDetails = {
-        'playerName': '',
-        'matchID': 0,
+        'playerName': 'Vince',
+        'matchID': 8,
     }
     const [gameDetails, setGameDetails] = useState(blankGameDetails);
 
-    function alterGameDetails(newDetails, nextMode) {
+    function alterGameDetails(newDetails) {
         setGameDetails({...gameDetails, ...newDetails});
-
-        if (nextMode) {
-            setGameMode(nextMode);
-        }
     }
 
     React.useEffect(() => {
@@ -25,10 +22,16 @@ const Janken = () => {
     }, [gameDetails]);
 
     switch (gameMode) {
+        case SHOW_SUMMARY:
+            return <GameSummary
+                gameDetails={gameDetails}
+                advanceMode={() => setGameMode(NAME_PROMPT)}
+            />;
+
         default:
             return <NamePrompt
                 alterGameDetails={alterGameDetails}
-                nextMode={GAME_PLAY}
+                advanceMode={() => setGameMode(GAME_PLAY)}
             />;
     }
 }
