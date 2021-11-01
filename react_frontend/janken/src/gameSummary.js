@@ -3,7 +3,7 @@ import * as BACKEND from './constants';
 
 const axios = require('axios');
 
-const GameSummary = ({gameDetails, advanceMode}) => {
+const GameSummary = ({gameDetails, alterGameDetails, resetGame, rematchGame}) => {
 
     const [summaryMessage, setSummaryMessage] = useState("");
     const [inError, setInError] = useState(false);
@@ -24,8 +24,33 @@ const GameSummary = ({gameDetails, advanceMode}) => {
             setInError(false);
             setSummaryMessage(payload.summary);
         } catch (error) {
-            setInError(true)
+            setInError(true);
             setSummaryMessage(error.response.data['message']);
+        }
+    }
+
+    async function prepareRematch() {
+        try {
+            const endpoint_url = BACKEND.DJANGO_API_ROOT_URL + 'janken/register/';
+            const registration_data = {
+                'name': gameDetails.playerName,
+            }
+
+            const response = await axios({
+                method: 'post',
+                url: endpoint_url,
+                data: registration_data
+            });
+            const payload = response.data;
+
+            alterGameDetails({
+                playerName: payload.name,
+                matchID: payload.match_id,
+            });
+            rematchGame();
+        } catch (error) {
+            setInError(true);
+            setSummaryMessage("Rematch failed: " + error.response.data['message']);
         }
     }
 
@@ -33,7 +58,7 @@ const GameSummary = ({gameDetails, advanceMode}) => {
         fetchSummary();
     }, []);
 
-    const namePromptStyles = {
+    const gameSummaryStyles = {
         centeredDiv: {
             position: 'absolute',
             top: '50%',
@@ -43,7 +68,7 @@ const GameSummary = ({gameDetails, advanceMode}) => {
             flexDirection: 'column'
         },
         resetButton: {
-            marginTop: "24px",
+            margin: "24px 20px",
             lineHeight: "32px",
             padding: "0px 10px",
             fontSize: 'larger',
@@ -56,17 +81,25 @@ const GameSummary = ({gameDetails, advanceMode}) => {
     }
 
     return (
-        <div style={namePromptStyles.centeredDiv}>
-            <h1>SUMMARY</h1>
-            <span style={namePromptStyles.summaryText}>
-                {summaryMessage}
-            </span>
+        <div style={gameSummaryStyles.centeredDiv}>
+            <center>
+                <h1>SUMMARY</h1>
+                <span style={gameSummaryStyles.summaryText}>
+                    {summaryMessage}
+                </span>
+            </center>
             <center>
                 <button
-                    onClick={advanceMode}
-                    style={namePromptStyles.resetButton}
+                    onClick={resetGame}
+                    style={gameSummaryStyles.resetButton}
                 >
                     Back to Start
+                </button>
+                <button
+                    onClick={prepareRematch}
+                    style={gameSummaryStyles.resetButton}
+                >
+                    Rematch!
                 </button>
             </center>
         </div>

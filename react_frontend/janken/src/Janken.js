@@ -10,6 +10,7 @@ const Janken = () => {
     const blankGameDetails = {
         'playerName': 'Vince',
         'matchID': 8,
+        'rounds': []
     }
     const [gameDetails, setGameDetails] = useState(blankGameDetails);
 
@@ -25,7 +26,9 @@ const Janken = () => {
         case SHOW_SUMMARY:
             return <GameSummary
                 gameDetails={gameDetails}
-                advanceMode={() => setGameMode(NAME_PROMPT)}
+                alterGameDetails={alterGameDetails}
+                resetGame={() => setGameMode(NAME_PROMPT)}
+                rematchGame={() => setGameMode(GAME_PLAY)}
             />;
 
         default:
