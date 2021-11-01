@@ -74,10 +74,10 @@ class Match(TimeStampedModel):
     UNDECIDED = 'U'
 
     MATCH_OUTCOMES = (
-        (PLAYER_WON, "Player won match against bot"),
-        (PLAYER_LOST, "Player lost match against bot"),
-        (PLAYER_TIED, "Player tied match with bot"),
-        (UNDECIDED, 'Match undecided / unfinished')
+        (PLAYER_WON, "Player won match against bot."),
+        (PLAYER_LOST, "Player lost match against bot."),
+        (PLAYER_TIED, "Player tied match with bot."),
+        (UNDECIDED, "Match undecided / unfinished.")
     )
 
     player = models.ForeignKey('Player', blank=True, null=True,
@@ -94,13 +94,9 @@ class Match(TimeStampedModel):
     def decide_outcome(self) -> str:
         """ Decide the outcome of the match """
 
+        outcome_strings_as_dict = dict((x, y) for x, y in self.MATCH_OUTCOMES)
+
         rounds_played = getattr(self, 'rounds_played', Round.objects.none())
-
-        if rounds_played.count() < 3:
-            self.outcome = self.UNDECIDED
-            self.save()
-            return self.UNDECIDED
-
         if rounds_played.count() > 3:
             raise ValueError(
                 f"More than 3 rounds were played for match {self.id}")
@@ -108,16 +104,25 @@ class Match(TimeStampedModel):
         player_wins = rounds_played.filter(outcome=Round.PLAYER_WON).count()
         bot_wins = rounds_played.filter(outcome=Round.PLAYER_LOST).count()
 
-        if player_wins > bot_wins:
-            outcome = self.PLAYER_WON
-        elif player_wins < bot_wins:
-            outcome = self.PLAYER_LOST
+        if rounds_played.count() < 3:
+            outcome = self.UNDECIDED
         else:
-            outcome = self.PLAYER_TIED
+            if player_wins > bot_wins:
+                outcome = self.PLAYER_WON
+            elif player_wins < bot_wins:
+                outcome = self.PLAYER_LOST
+            else:
+                outcome = self.PLAYER_TIED
+
+            self.player.invalidate_key()
 
         self.outcome = outcome
         self.save()
-        return outcome
+
+        outcome_strings_as_dict = dict((x, y) for x, y in self.MATCH_OUTCOMES)
+        return {
+            'summary': outcome_strings_as_dict[outcome]
+        }
 
 
 

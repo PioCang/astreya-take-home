@@ -77,3 +77,41 @@ class PlayRound(APIView):
             dump_thorough_stack_trace()
             return Response({'message': str(err)},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class MatchSummary(APIView):
+    """ Get the summary for this Janken Match """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """ Play a round of Janken """
+
+        try:
+            name = request.GET.get('name', '')
+            if not name:
+                raise ValueError("The name is invalid")
+
+            match_id = int(request.GET.get('match_id', 0))
+            if not match_id:
+                raise ValueError("Invalid match ID")
+
+            player_exists = Player.objects \
+                .filter(name=name,
+                        session_key=request.session.session_key) \
+                .exists()
+            if not player_exists:
+                raise ValueError("Invalid Player")
+
+            try:
+                match = Match.objects.get(id=match_id)
+            except Match.DoesNotExist as nonexistent:
+                raise ValueError("Invalid Match ID") from nonexistent
+
+            match_summary = match.decide_outcome()
+            return Response(match_summary, status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as err:
+            dump_thorough_stack_trace()
+            return Response({'message': str(err)},
+                            status=status.HTTP_400_BAD_REQUEST)
