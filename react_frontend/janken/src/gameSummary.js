@@ -3,7 +3,7 @@ import * as BACKEND from './constants';
 
 const axios = require('axios');
 
-const GameSummary = ({gameDetails, alterGameDetails, resetGame, rematchGame}) => {
+const GameSummary = ({gameDetails, alterGameDetails, resetGame, commenceRematch}) => {
 
     const [summaryMessage, setSummaryMessage] = useState("");
     const [inError, setInError] = useState(false);
@@ -46,8 +46,10 @@ const GameSummary = ({gameDetails, alterGameDetails, resetGame, rematchGame}) =>
             alterGameDetails({
                 playerName: payload.name,
                 matchID: payload.match_id,
+                rounds: [],
+                score: 0
             });
-            rematchGame();
+            commenceRematch();
         } catch (error) {
             setInError(true);
             setSummaryMessage("Rematch failed: " + error.response.data['message']);

@@ -8,10 +8,10 @@ const Janken = () => {
 
     const [gameMode, setGameMode] = useState(NAME_PROMPT);
     const blankGameDetails = {
-        'playerName': '',
-        'matchID': 0,
-        'rounds': [],
-        'score': 0
+        playerName: '',
+        matchID: 0,
+        rounds: [],
+        score: 0,
     }
     const [gameDetails, setGameDetails] = useState(blankGameDetails);
 
@@ -39,7 +39,7 @@ const Janken = () => {
                     setGameDetails(blankGameDetails);
                     setGameMode(NAME_PROMPT);
                 }}
-                rematchGame={() => setGameMode(GAME_PLAY)}
+                commenceRematch={() => setGameMode(GAME_PLAY)}
             />;
 
         default:

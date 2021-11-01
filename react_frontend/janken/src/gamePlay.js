@@ -52,7 +52,8 @@ const GamePlay = ({gameDetails, alterGameDetails, advanceToSummary}) => {
             left: '50%',
             transform: `translateX(-50%) translateY(-50%)`,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            width: '80%',
         },
         playButton: {
             marginTop: "24px",
@@ -99,33 +100,38 @@ const GamePlay = ({gameDetails, alterGameDetails, advanceToSummary}) => {
                 </table>
             }
 
-            <h1>
+            <center>
+                <h1>
+                    {
+                        gameDetails.rounds.length < 3
+                        ? `Round ${gameDetails.rounds.length + 1}`
+                        : 'Game Over'
+                    }
+                </h1>
                 {
-                    gameDetails.rounds.length < 3
-                    ? `Round ${gameDetails.rounds.length + 1}`
-                    : 'Game Over'
+                    gameDetails.rounds.length < 3 &&
+                    <div className="radio">
+                        {
+                            selectionChoices.map((choice, index) => {
+                                return (
+                                    <label key={index}
+                                        style={gamePlayStyles.radioButtons}>
+                                        <input
+                                            type="radio"
+                                            value={choice}
+                                            checked={selection === choice}
+                                            onChange={() => setSelection(choice)}
+                                        />
+                                        {choice}
+                                        <br/>
+                                        <br/>
+                                    </label>
+                                )
+                            })
+                        }
+                    </div>
                 }
-             </h1>
-            <div className="radio">
-                {
-                    selectionChoices.map((choice, index) => {
-                        return (
-                            <label key={index}
-                                style={gamePlayStyles.radioButtons}>
-                                <input
-                                    type="radio"
-                                    value={choice}
-                                    checked={selection === choice}
-                                    onChange={() => setSelection(choice)}
-                                />
-                                {choice}
-                                <br/>
-                                <br/>
-                            </label>
-                        )
-                    })
-                }
-            </div>
+            </center>
             <center>
                 {
                     gameDetails.rounds.length === 3
